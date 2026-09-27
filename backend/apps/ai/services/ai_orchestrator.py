@@ -2,6 +2,8 @@
 
 from typing import Any
 
+from django.conf import settings
+
 from .fallback_provider import FallbackProvider
 from .gemini_service import GeminiService, GeminiServiceError
 
@@ -37,7 +39,7 @@ class AIOrchestrator:
                 json_mode=json_mode,
             )
         except GeminiServiceError:
-            if self.fallback is None:
+            if not settings.FALLBACK_AI_ENABLED or self.fallback is None:
                 raise
 
             return self.fallback.generate_text(
