@@ -2,21 +2,20 @@
 
 from typing import Any
 
-from .gemini_service import GeminiService, GeminiServiceError
+from .fallback_provider import FallbackProvider
+from .gemini_service import GeminiService
 
 
 class AIOrchestrator:
-    """
-    Coordinate AI requests through the primary provider.
-
-    Fallback provider and caching will be added in later phases.
-    """
+    """Coordinate primary and optional fallback AI providers."""
 
     def __init__(
         self,
         gemini_service: GeminiService | None = None,
+        fallback_provider: FallbackProvider | None = None,
     ) -> None:
         self.gemini = gemini_service or GeminiService()
+        self.fallback = fallback_provider
 
     def generate_text(
         self,
@@ -27,7 +26,7 @@ class AIOrchestrator:
         temperature: float = 0.2,
         json_mode: bool = False,
     ) -> str:
-        """Generate text through the configured primary AI provider."""
+        """Generate text through the primary provider."""
 
         return self.gemini.generate_text(
             system_prompt=system_prompt,
@@ -45,7 +44,7 @@ class AIOrchestrator:
         max_tokens: int = 1024,
         temperature: float = 0.2,
     ) -> dict[str, Any] | list[Any]:
-        """Generate and parse JSON through the configured primary provider."""
+        """Generate JSON through the primary provider."""
 
         return self.gemini.generate_json(
             system_prompt=system_prompt,
