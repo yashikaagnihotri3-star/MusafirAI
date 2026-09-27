@@ -573,3 +573,33 @@ class ItineraryOptimizationTests(TestCase):
 
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.data["error"]["code"], "provider_timeout")
+class AIOrchestratorTests(TestCase):
+    """Tests for primary/fallback AI orchestration."""
+
+    def test_uses_fallback_when_gemini_fails(self):
+        from unittest.mock import Mock
+
+        from .services.ai_orchestrator import AIOrchestrator
+
+        gemini = Mock()
+        gemini.generate_text.side_effect = GeminiServiceError(
+            "provider_rate_limited",
+            "The AI provider is busy.",
+            429,
+        )
+
+        fallback = Mock()
+        fallback.generate_text.return_value = "Fallback response"
+
+        orchestrator = AIOrchestrator(
+            gemini_service=gemini,
+            fallback_provider=fallback,
+        )
+
+        result = orchestrator.generate_text(
+            system_prompt="system",
+            user_prompt="user",
+        )
+
+        self.assertEqual(result, "Fallback response")
+        fallback.generate_text.assert_called_once()

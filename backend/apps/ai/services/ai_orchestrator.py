@@ -3,7 +3,7 @@
 from typing import Any
 
 from .fallback_provider import FallbackProvider
-from .gemini_service import GeminiService
+from .gemini_service import GeminiService, GeminiServiceError
 
 
 class AIOrchestrator:
@@ -26,15 +26,27 @@ class AIOrchestrator:
         temperature: float = 0.2,
         json_mode: bool = False,
     ) -> str:
-        """Generate text through the primary provider."""
+        """Generate text using Gemini, then fallback if Gemini fails."""
 
-        return self.gemini.generate_text(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            json_mode=json_mode,
-        )
+        try:
+            return self.gemini.generate_text(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                json_mode=json_mode,
+            )
+        except GeminiServiceError:
+            if self.fallback is None:
+                raise
+
+            return self.fallback.generate_text(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                json_mode=json_mode,
+            )
 
     def generate_json(
         self,
@@ -44,11 +56,22 @@ class AIOrchestrator:
         max_tokens: int = 1024,
         temperature: float = 0.2,
     ) -> dict[str, Any] | list[Any]:
-        """Generate JSON through the primary provider."""
+        """Generate JSON using Gemini, then fallback if Gemini fails."""
 
-        return self.gemini.generate_json(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
+        try:
+            return self.gemini.generate_json(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+        except GeminiServiceError:
+            if self.fallback is None:
+                raise
+
+            return self.fallback.generate_json(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
