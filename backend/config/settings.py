@@ -156,6 +156,10 @@ MAILERS = {
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 GEMINI_TIMEOUT_SECONDS = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "30"))
+# Fallback AI configuration
+FALLBACK_AI_ENABLED = (
+    os.getenv("FALLBACK_AI_ENABLED", "false").lower() == "true"
+)
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv(
