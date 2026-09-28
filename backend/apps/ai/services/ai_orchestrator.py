@@ -6,6 +6,7 @@ from django.conf import settings
 
 from .fallback_provider import FallbackProvider
 from .gemini_service import GeminiService, GeminiServiceError
+from .ollama_fallback_provider import OllamaFallbackProvider
 
 
 class AIOrchestrator:
@@ -17,7 +18,7 @@ class AIOrchestrator:
         fallback_provider: FallbackProvider | None = None,
     ) -> None:
         self.gemini = gemini_service or GeminiService()
-        self.fallback = fallback_provider
+        self.fallback = fallback_provider or OllamaFallbackProvider()
 
     def generate_text(
         self,
@@ -28,7 +29,7 @@ class AIOrchestrator:
         temperature: float = 0.2,
         json_mode: bool = False,
     ) -> str:
-        """Generate text using Gemini, then fallback if Gemini fails."""
+        """Generate text using Gemini, then Ollama if Gemini fails."""
 
         try:
             return self.gemini.generate_text(
@@ -58,7 +59,7 @@ class AIOrchestrator:
         max_tokens: int = 1024,
         temperature: float = 0.2,
     ) -> dict[str, Any] | list[Any]:
-        """Generate JSON using Gemini, then fallback if Gemini fails."""
+        """Generate JSON using Gemini, then Ollama if Gemini fails."""
 
         try:
             return self.gemini.generate_json(
@@ -68,7 +69,7 @@ class AIOrchestrator:
                 temperature=temperature,
             )
         except GeminiServiceError:
-            if self.fallback is None:
+            if not settings.FALLBACK_AI_ENABLED or self.fallback is None:
                 raise
 
             return self.fallback.generate_json(

@@ -181,7 +181,76 @@ class ItineraryGenerateTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["success"])
+    def test_uses_stored_itinerary_when_ai_generation_fails(self):
+        generated = self.one_day_itinerary()
 
+        stored = Itinerary.objects.create(
+            destination="Dehradun",
+            days=1,
+            budget=5000,
+            interests=["nature", "heritage"],
+            travel_style="solo",
+            travel_pace="moderate",
+            total_estimated_cost=generated["total_estimated_cost"],
+            itinerary=generated["itinerary"],
+        )
+
+        with patch(
+            "apps.ai.services.itinerary_service.AIOrchestrator"
+        ) as orchestrator_class:
+            orchestrator_class.return_value.generate_json.side_effect = (
+                GeminiServiceError(
+                    "provider_unavailable",
+                    "The AI provider is unavailable.",
+                    503,
+                )
+            )
+
+            response = self.client.post(
+                self.endpoint,
+                self.request_payload(),
+                format="json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(
+            response.data["destination"],
+            stored.destination,
+        )
+        self.assertEqual(
+            response.data["days"],
+            stored.days,
+        )
+        self.assertEqual(
+            response.data["total_estimated_cost"],
+            stored.total_estimated_cost,
+        )
+
+    def test_returns_original_ai_error_when_no_stored_itinerary_exists(self):
+        error = GeminiServiceError(
+            "provider_unavailable",
+            "The AI provider is unavailable.",
+            503,
+        )
+
+        with patch(
+            "apps.ai.services.itinerary_service.AIOrchestrator"
+        ) as orchestrator_class:
+            orchestrator_class.return_value.generate_json.side_effect = error
+
+            response = self.client.post(
+                self.endpoint,
+                self.request_payload(),
+                format="json",
+            )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertFalse(response.data["success"])
+        self.assertEqual(
+            response.data["error"]["code"],
+            "provider_unavailable",
+        )
     def test_rejects_missing_destination(self):
         payload = self.request_payload()
         payload.pop("destination")
@@ -573,36 +642,7 @@ class ItineraryOptimizationTests(TestCase):
 
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.data["error"]["code"], "provider_timeout")
-class AIOrchestratorTests(TestCase):
-    """Tests for primary/fallback AI orchestration."""
-    @override_settings(FALLBACK_AI_ENABLED=True)
-    def test_uses_fallback_when_gemini_fails(self):
-        from unittest.mock import Mock
 
-        from .services.ai_orchestrator import AIOrchestrator
-
-        gemini = Mock()
-        gemini.generate_text.side_effect = GeminiServiceError(
-            "provider_rate_limited",
-            "The AI provider is busy.",
-            429,
-        )
-
-        fallback = Mock()
-        fallback.generate_text.return_value = "Fallback response"
-
-        orchestrator = AIOrchestrator(
-            gemini_service=gemini,
-            fallback_provider=fallback,
-        )
-
-        result = orchestrator.generate_text(
-            system_prompt="system",
-            user_prompt="user",
-        )
-
-        self.assertEqual(result, "Fallback response")
-        fallback.generate_text.assert_called_once()
 class AIOrchestratorTests(TestCase):
     """Tests for primary/fallback AI orchestration."""
 
@@ -665,3 +705,36 @@ class AIOrchestratorTests(TestCase):
 
         self.assertEqual(context.exception.code, "provider_rate_limited")
         fallback.generate_text.assert_not_called()
+    @override_settings(FALLBACK_AI_ENABLED=True)
+    def test_uses_fallback_json_when_gemini_fails(self):
+        from unittest.mock import Mock
+
+        from .services.ai_orchestrator import AIOrchestrator
+
+        gemini = Mock()
+        gemini.generate_json.side_effect = GeminiServiceError(
+            "provider_rate_limited",
+            "The AI provider is busy.",
+            429,
+        )
+
+        fallback = Mock()
+        fallback.generate_json.return_value = {
+            "destination": "Dehradun",
+            "days": 1,
+            "total_estimated_cost": 500,
+            "itinerary": [],
+        }
+
+        orchestrator = AIOrchestrator(
+            gemini_service=gemini,
+            fallback_provider=fallback,
+        )
+
+        result = orchestrator.generate_json(
+            system_prompt="system",
+            user_prompt="user",
+        )
+
+        self.assertEqual(result["destination"], "Dehradun")
+        fallback.generate_json.assert_called_once()

@@ -3,6 +3,7 @@
 from datetime import datetime
 from typing import Any
 
+from apps.ai.models import Itinerary
 from .ai_orchestrator import AIOrchestrator
 from .gemini_service import GeminiService, GeminiServiceError
 
@@ -36,18 +37,26 @@ class ItineraryService:
             self.ai_orchestrator = AIOrchestrator()
 
     def generate(self, preferences: dict[str, Any]) -> dict[str, Any]:
-        """Generate and validate a day-wise itinerary."""
+        """Generate a validated itinerary with stored DB fallback."""
         system_prompt, user_prompt = self._build_prompts(preferences)
 
-        response = self.ai_orchestrator.generate_json(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            max_tokens=4000,
-            temperature=0.2,
-        )
+        try:
+            response = self.ai_orchestrator.generate_json(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                max_tokens=4000,
+                temperature=0.2,
+            )
 
-        return self.validate_itinerary(response, preferences)
+            return self.validate_itinerary(response, preferences)
 
+        except GeminiServiceError:
+            stored_fallback = self.find_stored_fallback(preferences)
+
+            if stored_fallback is not None:
+                return stored_fallback
+
+            raise
     def regenerate_day(
         self,
         preferences: dict[str, Any],
@@ -86,6 +95,28 @@ class ItineraryService:
 
         return validated_day
 
+    @staticmethod
+    def find_stored_fallback(preferences: dict[str, Any]) -> dict[str, Any] | None:
+        """Return a matching stored itinerary for AI failure recovery."""
+        candidates = Itinerary.objects.filter(
+            destination__iexact=preferences["destination"],
+            days=preferences["days"],
+            budget__gte=preferences["budget"],
+            travel_style=preferences["travel_style"],
+            travel_pace=preferences["travel_pace"],
+        ).order_by("-updated_at")
+
+        for itinerary in candidates:
+            if itinerary.interests == preferences["interests"]:
+                return {
+                    "destination": itinerary.destination,
+                    "days": itinerary.days,
+                    "total_estimated_cost": itinerary.total_estimated_cost,
+                    "itinerary": itinerary.itinerary,
+                }
+
+        return None
+    
     @staticmethod
     def _build_prompts(
         preferences: dict[str, Any],
