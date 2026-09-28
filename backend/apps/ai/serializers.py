@@ -149,3 +149,43 @@ class ItineraryOptimizationRequestSerializer(serializers.Serializer):
             )
             for place in places
         )
+class BudgetEstimateRequestSerializer(serializers.Serializer):
+    """Validate travel details for AI-powered budget estimation."""
+
+    destination = serializers.CharField(
+        min_length=2,
+        max_length=100,
+        trim_whitespace=True,
+    )
+    days = serializers.IntegerField(min_value=1, max_value=30)
+    travellers = serializers.IntegerField(min_value=1, max_value=50)
+    travel_style = serializers.ChoiceField(
+        choices=("budget", "moderate", "luxury"),
+    )
+    travel_pace = serializers.ChoiceField(
+        choices=("relaxed", "comfortable", "packed"),
+    )
+    interests = serializers.ListField(
+        child=serializers.CharField(
+            min_length=1,
+            max_length=50,
+            trim_whitespace=True,
+        ),
+        required=False,
+        default=list,
+        allow_empty=True,
+    )
+    transport_preference = serializers.CharField(
+        min_length=2,
+        max_length=50,
+        trim_whitespace=True,
+        required=False,
+        default="not specified",
+    )
+
+    def validate_destination(self, value):
+        if not any(character.isalpha() for character in value):
+            raise serializers.ValidationError(
+                "Destination must include letters."
+            )
+        return value

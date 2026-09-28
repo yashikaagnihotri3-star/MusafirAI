@@ -738,3 +738,64 @@ class AIOrchestratorTests(TestCase):
 
         self.assertEqual(result["destination"], "Dehradun")
         fallback.generate_json.assert_called_once()
+        
+class BudgetServiceTests(TestCase):
+    def test_valid_budget_response_calculates_total(self):
+        from .services.budget_service import BudgetService
+
+        response = {
+            "destination": "Dehradun",
+            "currency": "INR",
+            "breakdown": {
+                "transport": 1200,
+                "accommodation": 2400,
+                "food": 1800,
+                "local_transport": 300,
+                "activities": 1500,
+                "miscellaneous": 600,
+            },
+            "estimated_total": 7800,
+            "minimum_budget": 7020,
+            "maximum_budget": 8580,
+            "assumptions": [
+                "Moderate travel style",
+                "Train transport",
+            ],
+        }
+
+        result = BudgetService.validate_response(
+            response,
+            "Dehradun",
+        )
+
+        self.assertEqual(result["estimated_total"], 7800)
+        self.assertEqual(result["minimum_budget"], 7020)
+        self.assertEqual(result["maximum_budget"], 8580)
+
+    def test_invalid_budget_response_is_rejected(self):
+        from .services.budget_service import (
+            BudgetResponseValidationError,
+            BudgetService,
+        )
+
+        response = {
+            "destination": "Dehradun",
+            "currency": "INR",
+            "breakdown": {
+                "transport": 1200,
+                "accommodation": 2400,
+                "food": 1800,
+                "local_transport": 300,
+                "activities": 1500,
+                "miscellaneous": 600,
+            },
+            "minimum_budget": 7020,
+            "maximum_budget": 8580,
+            "assumptions": ["Moderate travel style"],
+        }
+
+        with self.assertRaises(BudgetResponseValidationError):
+            BudgetService.validate_response(
+                response,
+                "Dehradun",
+            )

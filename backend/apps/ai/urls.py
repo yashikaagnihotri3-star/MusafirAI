@@ -6,6 +6,7 @@ from .views import (
     add_itinerary_place,
     ai_health_check,
     create_itinerary,
+    estimate_budget,
     generate_itinerary,
     heritage_guide,
     heritage_question,
@@ -19,6 +20,7 @@ from .views import (
 urlpatterns = [
     path("health/", ai_health_check, name="ai-health-check"),
     path("itinerary/generate/", generate_itinerary, name="itinerary-generate"),
+    path("budget/estimate/", estimate_budget, name="budget-estimate"),
     path("itinerary/optimize/", optimize_itinerary, name="itinerary-optimize"),
     path("heritage/", heritage_guide, name="heritage-guide"),
     path("heritage/ask/", heritage_question, name="heritage-question"),
