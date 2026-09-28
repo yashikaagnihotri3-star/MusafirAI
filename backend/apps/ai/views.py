@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from .models import Itinerary
 from .serializers import (
     AIHealthCheckSerializer,
+    BudgetEstimateRequestSerializer,
     HeritageRequestSerializer,
     ItineraryDetailSerializer,
     ItineraryGenerateRequestSerializer,
@@ -22,6 +23,7 @@ from .services.gemini_service import GeminiService, GeminiServiceError
 from .services.itinerary_service import ItineraryService
 from .services.heritage_service import HeritageService
 from .services.optimization_service import OptimizationService
+from .services.budget_service import BudgetService
 
 
 def error_response(code, message, status, details=None):
@@ -226,3 +228,28 @@ def remove_itinerary_place(request, itinerary_id, day, place_index):
     except GeminiServiceError as error:
         return error_response(error.code, error.message, error.status_code)
     return itinerary_response(itinerary)
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def estimate_budget(request):
+    """Return a validated AI-powered travel budget estimate."""
+    serializer = BudgetEstimateRequestSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        return error_response(
+            "validation_error",
+            "Invalid budget estimate request.",
+            400,
+            serializer.errors,
+        )
+
+    try:
+        estimate = BudgetService().estimate(serializer.validated_data)
+    except GeminiServiceError as error:
+        return error_response(
+            error.code,
+            error.message,
+            error.status_code,
+        )
+
+    return Response({"success": True, **estimate})
