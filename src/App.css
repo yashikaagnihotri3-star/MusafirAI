@@ -179,13 +179,13 @@ input {
 /* ========================================
    HERO
 ======================================== */
-
+/* 
 .landing-hero {
   min-height: 550px;
 
   position: relative;
 
-  z-index: 10;
+  z-index: 50;
 
   background-size: cover;
 
@@ -197,8 +197,20 @@ input {
   overflow: visible;
 }
 
+.landing-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("/src/assets/mountain-bg.png");
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
 
-/* WHITE OVERLAY */
+
 
 .landing-hero::before {
   content: "";
@@ -220,8 +232,6 @@ input {
 }
 
 
-/* HERO CONTENT */
-
 .hero-content {
   width: 100%;
 
@@ -233,7 +243,7 @@ input {
 
   position: relative;
 
-  z-index: 20;
+  z-index: 100;
 }
 
 .hero-left {
@@ -241,11 +251,9 @@ input {
 
   position: relative;
 
-  z-index: 30;
+  z-index: 200;
 }
 
-
-/* LABEL */
 
 .hero-label {
   color: #078b86;
@@ -260,7 +268,6 @@ input {
 }
 
 
-/* HEADING */
 
 .hero-left h1 {
   margin: 0;
@@ -281,7 +288,7 @@ input {
 }
 
 
-/* SUB HEADING */
+
 
 .hero-left h2 {
   margin: 13px 0 8px;
@@ -296,7 +303,7 @@ input {
 }
 
 
-/* DESCRIPTION */
+
 
 .hero-left > p {
   max-width: 390px;
@@ -318,9 +325,6 @@ input {
 }
 
 
-/* ========================================
-   SEARCH WRAPPER
-======================================== */
 
 .search-wrapper {
   width: 450px;
@@ -335,9 +339,6 @@ input {
 }
 
 
-/* ========================================
-   TRIP SEARCH
-======================================== */
 
 .trip-search {
   width: 100%;
@@ -361,7 +362,7 @@ input {
 
   position: relative;
 
-  z-index: 60;
+  z-index: 300;
 }
 
 .search-icon {
@@ -431,14 +432,11 @@ input {
 }
 
 
-/* ========================================
-   SEARCH RESULTS
-======================================== */
 
 .search-results {
   position: absolute;
 
-  top: 100%;
+  top: calc(100%+8px);
 
   left: 0;
 
@@ -446,7 +444,7 @@ input {
 
   max-width: 100%;
 
-  margin-top: 8px;
+  
 
   background: white;
 
@@ -459,7 +457,7 @@ input {
   box-shadow:
     0 10px 30px rgba(37, 85, 116, 0.18);
 
-  z-index: 1000;
+  z-index: 9999;
 }
 
 .search-results-title {
@@ -551,9 +549,6 @@ input {
 }
 
 
-/* ========================================
-   FEATURE SECTION
-======================================== */
 
 .feature-section {
   width: 100%;
@@ -610,7 +605,456 @@ input {
   border-radius: 7px;
 
   font-size: 20px;
+} */
+
+
+
+/* ========================================
+   HERO SECTION
+======================================== */
+
+.landing-hero {
+  min-height: 550px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: visible;
+
+  /* IMPORTANT:
+     Do NOT give the hero a z-index.
+     This allows the feature box to overlap
+     the mountain image correctly.
+  */
 }
+
+/* MOUNTAIN BACKGROUND */
+
+.landing-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(255, 255, 255, 0.94) 0%,
+      rgba(255, 255, 255, 0.68) 0%,
+      rgba(255, 255, 255, 0.08) 80%
+    ),
+    var(--mountain-bg);
+
+  background-size: cover;
+  background-position: center;
+
+  pointer-events: none;
+
+  /* Background stays behind content */
+  z-index: 0;
+}
+
+
+/* ========================================
+   HERO CONTENT
+======================================== */
+
+.hero-content {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+
+  position: relative;
+  z-index: 100;
+}
+
+.hero-left {
+  max-width: 490px;
+
+  position: relative;
+  z-index: 200;
+}
+
+
+/* ========================================
+   LABEL
+======================================== */
+
+.hero-label {
+  color: #078b86;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+}
+
+
+/* ========================================
+   HEADING
+======================================== */
+
+.hero-left h1 {
+  margin: 0;
+  color: #12466e;
+  font-size: 50px;
+  line-height: 1.02;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+}
+
+.hero-left h1 span {
+  color: #098d87;
+}
+
+
+/* ========================================
+   SUB HEADING
+======================================== */
+
+.hero-left h2 {
+  margin: 13px 0 8px;
+  color: #12466e;
+  font-size: 20px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+
+/* ========================================
+   DESCRIPTION
+======================================== */
+
+.hero-left > p {
+  max-width: 390px;
+  margin: 0;
+
+  color: #032441;
+
+  font-family:
+    "Times New Roman",
+    Times,
+    serif;
+
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+
+/* ========================================
+   SEARCH WRAPPER
+======================================== */
+
+.search-wrapper {
+  width: 450px;
+  max-width: 100%;
+  margin-top: 20px;
+
+  position: relative;
+  z-index: 500;
+}
+
+
+/* ========================================
+   TRIP SEARCH
+======================================== */
+
+.trip-search {
+  width: 100%;
+  height: 80px;
+
+  padding: 6px 20px;
+
+  display: flex;
+  align-items: center;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  border: 1px solid #dce8f0;
+  border-radius: 15px;
+
+  box-shadow:
+    0 6px 18px rgba(37, 85, 116, 0.12);
+
+  position: relative;
+  z-index: 600;
+}
+
+
+/* SEARCH ICON */
+
+.search-icon {
+  width: 30px;
+  height: 30px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 6px;
+  background: #99e8e8;
+
+  font-size: 18px;
+}
+
+
+/* SEARCH INPUT */
+
+.trip-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+
+  margin-left: 9px;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #47667e;
+  font-size: 14px;
+}
+
+.trip-search input::placeholder {
+  color: #718596;
+  opacity: 1;
+}
+
+
+/* PLAN BUTTON */
+
+.plan-button {
+  flex-shrink: 0;
+
+  padding: 9px 13px;
+
+  border-radius: 5px;
+
+  background: #0879d2;
+  color: white;
+
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.plan-button:hover {
+  background: #066dbd;
+}
+
+
+/* ========================================
+   SEARCH RESULTS
+======================================== */
+
+.search-results {
+  position: absolute;
+
+  /*
+     IMPORTANT:
+     This places the suggestion box directly
+     below the search box.
+  */
+  top: calc(100% + 8px);
+  left: 0;
+
+  width: 100%;
+  max-width: 100%;
+
+  background: white;
+
+  border: 1px solid #dce8f0;
+  border-radius: 10px;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 10px 30px rgba(37, 85, 116, 0.18);
+
+  /*
+     Must be above the feature box.
+  */
+  z-index: 99999;
+}
+
+
+/* SEARCH RESULTS TITLE */
+
+.search-results-title {
+  padding: 10px 13px 7px;
+
+  color: #8b9ba7;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+
+/* SEARCH RESULT ITEM */
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+
+  padding: 10px 13px;
+
+  border-top: 1px solid #eef3f6;
+
+  color: #315d7d;
+
+  transition: 0.2s;
+}
+
+.search-result-item:hover {
+  background: #f4f9fc;
+}
+
+
+/* RESULT ICON */
+
+.result-icon {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #edf8f8;
+  border-radius: 6px;
+
+  font-size: 16px;
+}
+
+
+/* RESULT CONTENT */
+
+.result-content {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  margin-left: 9px;
+}
+
+.result-content strong {
+  color: #315d7d;
+  font-size: 14px;
+}
+
+.result-content span {
+  margin-top: 2px;
+
+  color: #9aaab5;
+  font-size: 12px;
+}
+
+
+/* RESULT ARROW */
+
+.result-arrow {
+  color: #0879d2;
+  font-size: 14px;
+}
+
+
+/* NO RESULTS */
+
+.no-results {
+  padding: 14px;
+
+  color: #8999a5;
+  font-size: 14px;
+}
+
+
+/* ========================================
+   FEATURE SECTION
+======================================== */
+
+.feature-section {
+  width: 100%;
+  max-width: 1100px;
+
+  /*
+     Negative margin creates the overlap
+     with the mountain image.
+  */
+  margin: -22px auto 0;
+
+  position: relative;
+
+  /*
+     Lower than the search results.
+     Therefore:
+     Feature box < Search suggestions
+  */
+  z-index: 10;
+
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  background: white;
+
+  border: 1px solid #e0ebf3;
+  border-radius: 9px;
+
+  box-shadow:
+    0 7px 20px rgba(36, 83, 113, 0.1);
+
+  overflow: hidden;
+}
+
+
+/* ========================================
+   FEATURE CARD
+======================================== */
+
+.feature-card {
+  min-height: 70px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 12px 17px;
+
+  border-right: 1px solid #e7eef3;
+}
+
+.feature-card:last-child {
+  border-right: none;
+}
+
+
+/* ========================================
+   FEATURE ICON
+======================================== */
+
+.feature-card-icon {
+  width: 50px;
+  height: 50px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #edf8f8;
+  border-radius: 7px;
+
+  font-size: 20px;
+}
+
+
 
 .feature-card h3 {
   margin: 0;
@@ -5045,4 +5489,275 @@ input {
     align-items: flex-start;
   }
 
+}
+
+
+
+/* 
+.smart-map-page {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #eef5f8;
+}  */
+
+
+
+/* 
+
+.smart-map-container {
+  width: 100%;
+  min-height: 100vh;
+  padding: 28px 34px;
+  box-sizing: border-box;
+  background: #f4f8fc;
+}
+
+
+
+
+.smart-map-header {
+  background: white;
+  border-bottom: 1px solid #dce8f2;
+  padding-bottom: 20px;
+  margin-bottom: 22px;
+}
+
+.smart-map-header h1 {
+  margin: 0;
+  color: #123f63;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.smart-map-header p {
+  margin: 7px 0 0;
+  color: #7892a8;
+  font-size: 15px;
+}
+
+
+
+
+.smart-map-box {
+  width: 100%;
+  height: calc(100vh - 170px);
+  min-height: 500px;
+  background: white;
+  border: 1px solid #dce8f2;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(20, 70, 100, 0.08);
+} */
+
+
+
+/* =========================
+   SMART MAP PAGE
+========================= */
+
+.smart-map-section {
+  padding: 24px 28px 30px;
+  box-sizing: border-box;
+}
+
+
+/* INTRO */
+
+.smart-map-intro {
+  background: white;
+  border: 1px solid #dce8f2;
+  border-radius: 12px;
+  padding: 22px 26px;
+  margin-bottom: 18px;
+}
+
+.smart-map-label {
+  display: block;
+  color: #1596a8;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  margin-bottom: 5px;
+}
+
+.smart-map-intro h2 {
+  margin: 0;
+  color: #123f63;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.smart-map-intro p {
+  margin: 6px 0 0;
+  color: #7892a8;
+  font-size: 15px;
+}
+
+
+/* MAP */
+
+.smart-map-box {
+  width: 100%;
+  height: calc(100vh - 235px);
+  min-height: 500px;
+
+  background: white;
+  border: 1px solid #dce8f2;
+  border-radius: 12px;
+
+  overflow: hidden;
+
+  box-shadow: 0 4px 15px rgba(20, 70, 100, 0.08);
+}
+
+
+
+/* =================================
+   SMART MAP
+================================= */
+
+.coming-soon-section {
+  width: calc(100% - 48px);
+  max-width: 1300px;
+
+  margin: 48px auto;
+
+  padding: 42px 60px;
+
+  box-sizing: border-box;
+
+  background: linear-gradient(
+    135deg,
+    #eefafa,
+    #eef7fc
+  );
+
+  border: 1px solid #d9e8f0;
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 12px 35px rgba(25, 80, 110, 0.07);
+}
+
+
+/* CONTENT */
+
+.coming-soon-content {
+  width: 100%;
+}
+
+.coming-soon-content > span {
+  display: block;
+
+  margin-bottom: 12px;
+
+  color: #0b918d;
+
+  font-size: 30px;
+
+  font-weight: 800;
+
+  letter-spacing: 2px;
+}
+
+.coming-soon-content h2 {
+  margin: 0 0 14px;
+
+  color: #174a6d;
+
+  font-size: 42px;
+
+  line-height: 1.15;
+
+  font-weight: 750;
+}
+
+.coming-soon-content p {
+  max-width: 950px;
+
+  margin: 0 0 28px;
+
+  color: #67839a;
+
+  font-size: 17px;
+
+  line-height: 1.8;
+}
+
+
+/* =================================
+   GOOGLE MAP
+================================= */
+
+.landing-smart-map {
+  width: 157%;
+
+  height: 700px;
+
+  overflow: hidden;
+
+  background: white;
+
+  border: 1px solid black;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 8px 25px rgba(25, 80, 110, 0.10);
+}
+
+
+/* =================================
+   RESPONSIVE
+================================= */
+
+@media (max-width: 900px) {
+
+  .coming-soon-section {
+    width: calc(100% - 32px);
+
+    padding: 32px;
+  }
+
+  .coming-soon-content h2 {
+    font-size: 34px;
+  }
+
+  .landing-smart-map {
+    height: 280px;
+  }
+}
+
+
+@media (max-width: 600px) {
+
+  .coming-soon-section {
+    width: calc(100% - 24px);
+
+    padding: 25px;
+
+    border-radius: 18px;
+  }
+
+  .coming-soon-content > span {
+    font-size: 15px;
+  }
+
+  .coming-soon-content h2 {
+    font-size: 28px;
+  }
+
+  .coming-soon-content p {
+    font-size: 14px;
+
+    line-height: 1.7;
+  }
+
+  .landing-smart-map {
+    height: 240px;
+
+    border-radius: 12px;
+  }
 }

@@ -55,7 +55,7 @@ function Sidebar() {
         >
           <span>⌖</span>
           Smart Map
-          <small className="coming-mini">Soon</small>
+          
         </NavLink>
 
         <NavLink

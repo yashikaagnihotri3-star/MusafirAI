@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-
+import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
 import Navbar from "../components/Navbar";
 import mountainBg from "../assets/mountain-bg.png";
 import "../App.css";
-
+import { useNavigate } from "react-router-dom";
 
 function LandingPage() {
-
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
-
+  
 
   const destinations = [
     {
@@ -66,9 +66,7 @@ function LandingPage() {
       <section
         id="home"
         className="landing-hero"
-        style={{
-          backgroundImage: `url(${mountainBg})`
-        }}
+        style={{ "--mountain-bg": `url(${mountainBg})` }}
       >
 
         <div className="hero-content">
@@ -339,7 +337,7 @@ function LandingPage() {
 
             <Link
               key={destination.name}
-              to={`/destination/${destination.name.toLowerCase()}`}
+              to="/login"
               className="destination-card"
             >
 
@@ -477,47 +475,101 @@ function LandingPage() {
         </div>
 
       </section>
+          
+
+          {/* =================================
+    SMART MAP
+================================= */}
+
+<section
+  id="smart-map"
+  className="coming-soon-section"
+>
+
+  <div className="coming-soon-content">
+
+    <span>
+      SMART MAP
+    </span>
+
+    <h2>
+      Explore destinations visually
+    </h2>
+
+    <p>
+      MusafirAI Smart Map will help travellers
+      discover destinations, attractions, nearby
+      places and important travel locations through
+      one interactive map.
+    </p>
 
 
-      {/* =================================
-          SMART MAP
-      ================================= */}
+    {/* GOOGLE MAP */}
 
-      <section
-        id="smart-map"
-        className="coming-soon-section"
+    <div className="landing-smart-map">
+
+      <APIProvider
+        apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
       >
 
-        <div className="coming-soon-icon">
-          🗺️
-        </div>
+        <Map
+          defaultCenter={{
+            lat: 30.0668,
+            lng: 79.0193,
+          }}
 
+          defaultZoom={6}
 
-        <div className="coming-soon-content">
+          gestureHandling="greedy"
 
-          <span>
-            SMART MAP
-          </span>
+          disableDefaultUI={false}
 
-          <h2>
-            Explore destinations visually
-          </h2>
+          mapTypeControl={true}
 
-          <p>
-            MusafirAI Smart Map will help travellers
-            discover destinations, attractions, nearby
-            places and important travel locations through
-            one interactive map.
-          </p>
+          streetViewControl={true}
 
-          <div className="coming-soon-badge">
-            Coming Soon
-          </div>
+          fullscreenControl={false}
 
-        </div>
+          zoomControl={true}
 
-      </section>
+          onClick={(event) => {
 
+            if (event.detail.placeId) {
+
+              event.stop();
+
+              navigate("/login");
+
+            }
+
+          }}
+
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+        >
+
+          <Marker
+            position={{
+              lat: 30.0668,
+              lng: 79.0193,
+            }}
+
+            onClick={() => {
+              navigate("/login");
+            }}
+          />
+
+        </Map>
+
+      </APIProvider>
+
+    </div>
+
+  </div>
+
+</section>
 
       {/* =================================
           WOMEN SAFETY
