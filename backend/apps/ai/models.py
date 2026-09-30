@@ -23,6 +23,7 @@ class Itinerary(models.Model):
     interests = models.JSONField(default=list)
     travel_style = models.CharField(max_length=20)
     travel_pace = models.CharField(max_length=20)
+    preferred_places = models.JSONField(default=list, blank=True)
     total_estimated_cost = models.PositiveIntegerField()
     itinerary = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -43,4 +44,5 @@ class Itinerary(models.Model):
             "interests": self.interests,
             "travel_style": self.travel_style,
             "travel_pace": self.travel_pace,
+            "preferred_places": self.preferred_places,
         }

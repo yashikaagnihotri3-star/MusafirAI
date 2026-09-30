@@ -37,7 +37,7 @@ class ItineraryService:
             self.ai_orchestrator = AIOrchestrator()
 
     def generate(self, preferences: dict[str, Any]) -> dict[str, Any]:
-        """Generate a validated itinerary with stored DB fallback."""
+        """Generate a validated itinerary with repair and stored fallback."""
         system_prompt, user_prompt = self._build_prompts(preferences)
 
         try:
@@ -48,7 +48,31 @@ class ItineraryService:
                 temperature=0.2,
             )
 
-            return self.validate_itinerary(response, preferences)
+            try:
+                return self.validate_itinerary(response, preferences)
+            except ItineraryResponseValidationError:
+                repair_prompt = (
+                    "The previous itinerary JSON failed validation. "
+                    "Return the same itinerary as corrected JSON only. "
+                    "Do not change the destination, number of days, or requested "
+                    "preferred places. Recalculate every estimated_day_cost as "
+                    "the exact sum of its places' estimated_cost values, and "
+                    "recalculate total_estimated_cost as the exact sum of all "
+                    "estimated_day_cost values. Keep all costs as non-negative "
+                    "whole INR values and keep total_estimated_cost within budget."
+                )
+
+                repaired_response = self.ai_orchestrator.generate_json(
+                    system_prompt=system_prompt,
+                    user_prompt=f"{user_prompt}\n\n{repair_prompt}",
+                    max_tokens=4000,
+                    temperature=0.1,
+                )
+
+                return self.validate_itinerary(
+                    repaired_response,
+                    preferences,
+                )
 
         except GeminiServiceError:
             stored_fallback = self.find_stored_fallback(preferences)
@@ -78,6 +102,7 @@ class ItineraryService:
             f"Interests: {', '.join(preferences['interests'])}\n"
             f"Travel style: {preferences['travel_style']}\n"
             f"Travel pace: {preferences['travel_pace']}\n"
+            f"Preferred places: {', '.join(preferences.get('preferred_places', [])) or 'None'}\n"
             f"Maximum allowed cost for this day in INR: {maximum_day_cost}"
         )
 
@@ -107,13 +132,16 @@ class ItineraryService:
         ).order_by("-updated_at")
 
         for itinerary in candidates:
-            if itinerary.interests == preferences["interests"]:
+            if (
+                itinerary.interests == preferences["interests"]
+                and itinerary.preferred_places == preferences.get("preferred_places", [])
+            ):
                 return {
                     "destination": itinerary.destination,
                     "days": itinerary.days,
                     "total_estimated_cost": itinerary.total_estimated_cost,
                     "itinerary": itinerary.itinerary,
-                }
+             }
 
         return None
     
@@ -155,7 +183,8 @@ and must not exceed the supplied budget. Do not invent booking confirmations, op
             f"Budget in INR: {preferences['budget']}\n"
             f"Interests: {', '.join(preferences['interests'])}\n"
             f"Travel style: {preferences['travel_style']}\n"
-            f"Travel pace: {preferences['travel_pace']}"
+            f"Travel pace: {preferences['travel_pace']}\n"
+            f"Preferred places: {', '.join(preferences.get('preferred_places', [])) or 'None'}"
         )
 
         return system_prompt, user_prompt

@@ -23,7 +23,33 @@ class ItineraryGenerateRequestSerializer(serializers.Serializer):
     TRAVEL_PACE_CHOICES = ("relaxed", "moderate", "fast")
 
     destination = serializers.CharField(min_length=2, max_length=100, trim_whitespace=True)
+    preferred_places = serializers.ListField(
+        child=serializers.CharField(
+            min_length=1,
+            max_length=150,
+            trim_whitespace=True,
+        ),
+        required=False,
+        default=list,
+        max_length=30,
+        allow_empty=True,
+    )
     days = serializers.IntegerField(min_value=1, max_value=14)
+    
+    def validate_preferred_places(self, value):
+        cleaned = []
+        seen = set()
+
+        for place in value:
+            place = place.strip()
+            key = place.casefold()
+
+            if key not in seen:
+                seen.add(key)
+                cleaned.append(place)
+
+        return cleaned
+    
     budget = serializers.IntegerField(min_value=1, max_value=10_000_000)
     interests = serializers.ListField(
         child=serializers.ChoiceField(choices=INTEREST_CHOICES), min_length=1, max_length=5
@@ -51,7 +77,7 @@ class ItinerarySaveSerializer(ItineraryGenerateRequestSerializer):
     def validate(self, attrs):
         preferences = {
             key: attrs[key]
-            for key in ("destination", "days", "budget", "interests", "travel_style", "travel_pace")
+            for key in ("destination", "days", "budget", "interests", "travel_style", "travel_pace", "preferred_places")
         }
         response = {
             "destination": attrs["destination"],
@@ -96,6 +122,7 @@ class ItineraryDetailSerializer(serializers.ModelSerializer):
             "interests",
             "travel_style",
             "travel_pace",
+            "preferred_places",
             "total_estimated_cost",
             "itinerary",
             "created_at",
