@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-
+import { apiRequest } from "../api/api";
 import mountainBg from "../assets/mountain-bg.png";
 
 function Login() {
@@ -7,13 +7,30 @@ function Login() {
   const navigate = useNavigate();
 
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
+  e.preventDefault();
 
-    e.preventDefault();
+  const email = e.target.email.value;
+  const password = e.target.password.value;
+
+  try {
+    const data = await apiRequest("/api/accounts/login/", {
+      method: "POST",
+      body: JSON.stringify({
+        email: email,
+        password: password,
+      }),
+    });
+
+    localStorage.setItem("access_token", data.access);
+    localStorage.setItem("refresh_token", data.refresh);
+    localStorage.setItem("user_id", data.user_id);
 
     navigate("/Dashboard");
-
-  };
+  } catch (error) {
+    alert(error.message);
+  }
+};
 
 
   return (
@@ -70,6 +87,7 @@ function Login() {
 
             <input
               type="email"
+              name="email"
               placeholder="Enter your email"
               required
             />
@@ -92,6 +110,7 @@ function Login() {
 
             <input
               type="password"
+              name="password"
               placeholder="Enter your password"
               required
             />

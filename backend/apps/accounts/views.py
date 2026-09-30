@@ -5,7 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 
-from .models import TravelPreference
+from .models import User, TravelPreference
 
 from .serializers import SignupSerializer
 from .serializers import TravelPreferenceSerializer
@@ -34,22 +34,25 @@ class SignupView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+
+
+# login api
 class LoginView(APIView):
 
     def post(self, request):
 
-        username = request.data.get('username')
+        email = request.data.get('email')
         password = request.data.get('password')
 
-        user = authenticate(
-            username=username,
-            password=password
-        )
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user = None
 
-        if user is None:
+        if user is None or not user.check_password(password):
             return Response(
                 {
-                    "error": "Invalid username or password."
+                    "error": "Invalid email or password."
                 },
                 status=status.HTTP_401_UNAUTHORIZED
             )
@@ -66,8 +69,6 @@ class LoginView(APIView):
             },
             status=status.HTTP_200_OK
         )
-
-
 
 class ProfileView(APIView):
 
