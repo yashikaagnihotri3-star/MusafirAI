@@ -60,7 +60,8 @@ INSTALLED_APPS = [
     'apps.reroute',
     'apps.safety',
     'apps.trips',
-    'apps.weather'
+    'apps.weather',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -99,11 +100,14 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'musafirai',
+        'USER': 'root',
+        'PASSWORD': 'root123',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
@@ -151,6 +155,15 @@ MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
+}
+
+AUTH_USER_MODEL = 'accounts.User'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
 }
 # Gemini AI configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
