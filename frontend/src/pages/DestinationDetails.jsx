@@ -29,10 +29,10 @@ function DestinationDetail() {
 
         <div className="travel-topbar">
           <div className="travel-profile">
-            <div className="travel-avatar">AR</div>
+            <div className="travel-avatar">U</div>
 
             <div className="travel-profile-text">
-              <strong>Anubhuti</strong>
+              <strong>User</strong>
               <span>Traveler</span>
             </div>
           </div>
