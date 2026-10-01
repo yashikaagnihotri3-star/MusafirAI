@@ -24,27 +24,7 @@ function SmartMap() {
             <p>Explore destinations and places around the world.</p>
           </div>
 
-          <div className="topbar-right">
-
-            <button className="notification-button">
-              <div className="bell">🔔</div>
-              <span></span>
-            </button>
-
-            <div className="topbar-profile">
-
-              <div className="topbar-avatar">
-                U
-              </div>
-
-              <div>
-                <strong>User Name</strong>
-                <small>Traveler</small>
-              </div>
-
-            </div>
-
-          </div>
+          
 
         </header>
 

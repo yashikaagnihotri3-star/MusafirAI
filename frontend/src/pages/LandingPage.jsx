@@ -5,9 +5,22 @@ import Navbar from "../components/Navbar";
 import mountainBg from "../assets/mountain-bg.png";
 import "../App.css";
 import { useNavigate } from "react-router-dom";
+import {
+  Autocomplete,
+  useJsApiLoader,
+} from "@react-google-maps/api";
 
 function LandingPage() {
   const navigate = useNavigate();
+
+const [landingAutocomplete, setLandingAutocomplete] = useState(null);
+
+const libraries = ["places"];
+
+const { isLoaded: mapsLoaded } = useJsApiLoader({
+  googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+  libraries,
+});
   const [search, setSearch] = useState("");
   
 

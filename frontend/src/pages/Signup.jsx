@@ -1,11 +1,13 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
+import { Eye, EyeOff } from "lucide-react";
 import mountainBg from "../assets/mountain-bg.png";
 
 function Signup() {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -155,30 +157,54 @@ function Signup() {
           </div>
 
           <div className="input-group">
-            <label>Password</label>
+  <label>Password</label>
 
-            <input
-              type="password"
-              name="password"
-              placeholder="Create a password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
+  <div className="password-input-wrapper">
+    <input
+      type={showPassword ? "text" : "password"}
+      name="password"
+      placeholder="Enter your password"
+      required
+    />
+
+    <button
+      type="button"
+      className="password-eye"
+      onClick={() => setShowPassword(!showPassword)}
+      aria-label={showPassword ? "Hide password" : "Show password"}
+    >
+      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+    </button>
+  </div>
+</div>
 
           <div className="input-group">
-            <label>Confirm Password</label>
+  <label>Confirm Password</label>
 
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm your password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-            />
-          </div>
+  <div className="password-input-wrapper">
+    <input
+      type={showConfirmPassword ? "text" : "password"}
+      name="confirmPassword"
+      placeholder="Confirm your password"
+      required
+    />
+
+    <button
+      type="button"
+      className="password-eye"
+      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+      aria-label={
+        showConfirmPassword ? "Hide password" : "Show password"
+      }
+    >
+      {showConfirmPassword ? (
+        <EyeOff size={20} />
+      ) : (
+        <Eye size={20} />
+      )}
+    </button>
+  </div>
+</div>
 
           {error && (
             <p
