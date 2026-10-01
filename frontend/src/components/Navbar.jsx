@@ -7,9 +7,12 @@ function Navbar() {
 
       {/* LOGO */}
       <Link to="/" className="navbar-logo">
-        <span className="logo-symbol">✦</span>
-        Musafir<span className="logo-ai">AI</span>
-      </Link>
+  <img
+    src="/images/musafir-logo.png"
+    alt="MusafirAI"
+    className="musafir-logo"
+  />
+</Link>
 
 
       {/* NAVIGATION */}
