@@ -13,7 +13,7 @@ class Trip(models.Model):
 
     source = models.CharField(max_length=200)
     destination = models.CharField(max_length=200)
-
+    preferred_places = models.JSONField(default=list, blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
 

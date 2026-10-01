@@ -11,12 +11,14 @@ class TripSerializer(serializers.ModelSerializer):
             "title",
             "source",
             "destination",
+            "preferred_places",
             "start_date",
             "end_date",
             "budget",
             "created_at",
             "updated_at",
         ]
+        
         read_only_fields = [
             "id",
             "created_at",
