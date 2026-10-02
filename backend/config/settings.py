@@ -109,6 +109,37 @@ DATABASES = {
     }
 }
 
+# ============================================================
+# AI / GEMINI CONFIGURATION
+# ============================================================
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
+GEMINI_TIMEOUT_SECONDS = int(
+    os.getenv("GEMINI_TIMEOUT_SECONDS", "30")
+)
+
+FALLBACK_AI_ENABLED = os.getenv(
+    "FALLBACK_AI_ENABLED",
+    "false"
+).lower() in ("true", "1", "yes", "on")
+
+
+# ============================================================
+# OLLAMA FALLBACK CONFIGURATION
+# ============================================================
+
+OLLAMA_BASE_URL = os.getenv(
+    "OLLAMA_BASE_URL",
+    "http://127.0.0.1:11434"
+)
+
+OLLAMA_MODEL = os.getenv(
+    "OLLAMA_MODEL",
+    "qwen3:4b"
+)
+
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
 
