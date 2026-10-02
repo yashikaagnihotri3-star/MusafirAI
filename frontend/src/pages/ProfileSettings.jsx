@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useEffect, useRef, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import { apiRequest } from "../api/api";
@@ -21,16 +20,20 @@ function ProfileSettings() {
   const [success, setSuccess] = useState("");
   const [editing, setEditing] = useState(false);
 
-  // Get profile
+  const [profileImage, setProfileImage] = useState("");
+  const fileInputRef = useRef(null);
+
+  // --------------------------------------------------
+  // FETCH PROFILE
+  // --------------------------------------------------
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const data = await apiRequest(
-          "/api/accounts/profile/"
-        );
+        const data = await apiRequest("/api/accounts/profile/");
 
         setProfile(data);
 
@@ -39,7 +42,7 @@ function ProfileSettings() {
           phone: data.phone || "",
         });
       } catch (err) {
-        setError(err.message);
+        setError(err.message || "Unable to load profile.");
       } finally {
         setLoading(false);
       }
@@ -48,56 +51,45 @@ function ProfileSettings() {
     fetchProfile();
   }, []);
 
-  // Handle input changes
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  // --------------------------------------------------
+  // LOAD PROFILE IMAGE
+  // --------------------------------------------------
 
-  // Update profile
-  const handleSave = async () => {
-    try {
-      setSaving(true);
-      setError("");
-      setSuccess("");
+  useEffect(() => {
+    const savedImage = localStorage.getItem("musafirProfileImage");
 
-      const data = await apiRequest(
-        "/api/accounts/profile/",
-        {
-          method: "PUT",
-          body: JSON.stringify({
-            email: formData.email,
-            phone: formData.phone,
-          }),
-        }
-      );
-
-      setProfile(data);
-
-      setFormData({
-        email: data.email || "",
-        phone: data.phone || "",
-      });
-
-      setSuccess("Profile updated successfully.");
-      setEditing(false);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
+    if (savedImage) {
+      setProfileImage(savedImage);
     }
+  }, []);
+
+  // --------------------------------------------------
+  // FORM HANDLING
+  // --------------------------------------------------
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((previousData) => ({
+      ...previousData,
+      [name]: value,
+    }));
   };
 
-  // Enable edit mode
+  // --------------------------------------------------
+  // ENABLE EDIT MODE
+  // --------------------------------------------------
+
   const handleEdit = () => {
-    setSuccess("");
     setError("");
+    setSuccess("");
     setEditing(true);
   };
 
-  // Cancel editing
+  // --------------------------------------------------
+  // CANCEL EDITING
+  // --------------------------------------------------
+
   const handleCancel = () => {
     setFormData({
       email: profile.email || "",
@@ -109,19 +101,47 @@ function ProfileSettings() {
     setEditing(false);
   };
 
-  const firstLetter =
-    profile.username?.charAt(0)?.toUpperCase() || "U";
+  // --------------------------------------------------
+  // SAVE PROFILE
+  // --------------------------------------------------
 
-  const [profileImage, setProfileImage] = useState("");
-  const fileInputRef = useRef(null);
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setError("");
+      setSuccess("");
 
-  useEffect(() => {
-    const savedImage = localStorage.getItem("musafirProfileImage");
+      const data = await apiRequest("/api/accounts/profile/", {
+        method: "PUT",
+        body: JSON.stringify({
+          email: formData.email,
+          phone: formData.phone,
+        }),
+      });
 
-    if (savedImage) {
-      setProfileImage(savedImage);
+      setProfile(data);
+
+      setFormData({
+        email: data.email || "",
+        phone: data.phone || "",
+      });
+
+      setSuccess("Profile updated successfully.");
+      setEditing(false);
+    } catch (err) {
+      setError(err.message || "Unable to update profile.");
+    } finally {
+      setSaving(false);
     }
-  }, []);
+  };
+
+  // --------------------------------------------------
+  // PROFILE IMAGE
+  // --------------------------------------------------
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
 
   const handleImageUpload = (event) => {
     const file = event.target.files?.[0];
@@ -132,11 +152,13 @@ function ProfileSettings() {
 
     if (!file.type.startsWith("image/")) {
       alert("Please select a valid image file.");
+      event.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
       alert("Please select an image smaller than 5 MB.");
+      event.target.value = "";
       return;
     }
 
@@ -145,12 +167,19 @@ function ProfileSettings() {
     reader.onload = () => {
       const imageData = reader.result;
 
-      setProfileImage(imageData);
-      localStorage.setItem("musafirProfileImage", imageData);
+      if (typeof imageData === "string") {
+        setProfileImage(imageData);
+        localStorage.setItem("musafirProfileImage", imageData);
+      }
+    };
+
+    reader.onerror = () => {
+      alert("Unable to read the selected image.");
     };
 
     reader.readAsDataURL(file);
 
+    // Allow selecting the same image again later.
     event.target.value = "";
   };
 
@@ -159,189 +188,132 @@ function ProfileSettings() {
     localStorage.removeItem("musafirProfileImage");
   };
 
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
+  // --------------------------------------------------
+  // DISPLAY DATA
+  // --------------------------------------------------
+
+  const firstLetter =
+    profile.username?.charAt(0)?.toUpperCase() || "U";
+
+  // --------------------------------------------------
+  // UI
+  // --------------------------------------------------
 
   return (
     <div className="app-layout">
-
       <Sidebar />
 
       <main className="app-main">
-
+        {/* TOP BAR */}
         <header className="app-topbar">
           <div>
             <h1>Profile & Settings</h1>
-            <p>
-              Manage your account and travel preferences.
-            </p>
+            <p>Manage your account and travel preferences.</p>
           </div>
         </header>
 
-        {loading && (
-          <p>Loading profile...</p>
-        )}
+        {/* LOADING */}
+        {loading && <p>Loading profile...</p>}
 
+        {/* ERROR */}
         {error && (
           <p style={{ color: "red" }}>
             {error}
           </p>
         )}
 
+        {/* SUCCESS */}
         {success && (
           <p style={{ color: "green" }}>
             {success}
           </p>
         )}
 
-        {!loading && !error && (
+        {/* PROFILE CONTENT */}
+        {!loading && (
           <div className="profile-layout">
-          {/* PROFILE CARD */}
+            {/* ==========================================
+                PROFILE CARD
+            ========================================== */}
 
-          <section className="profile-card">
-
-            <div className="profile-avatar-wrapper">
-
-              <div className="profile-avatar">
-
-                {profileImage ? (
-                  <img
-                    src={profileImage}
-                    alt="Profile"
-                    className="profile-avatar-image"
-                  />
-                ) : (
-                  "U"
-                )}
-
-              </div>
-
-              <button
-                type="button"
-                className="profile-camera-button"
-                onClick={handleUploadClick}
-                title="Change profile picture"
-              >
-                +
-              </button>
-
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/jpg,image/webp"
-              onChange={handleImageUpload}
-              style={{ display: "none" }}
-            />
-
-            <h2>User Name</h2>
-
-            {/* Profile Card */}
             <section className="profile-card">
+              <div className="profile-avatar-wrapper">
+                <div className="profile-avatar">
+                  {profileImage ? (
+                    <img
+                      src={profileImage}
+                      alt="Profile"
+                      className="profile-avatar-image"
+                    />
+                  ) : (
+                    firstLetter
+                  )}
+                </div>
 
-              <div className="profile-avatar">
-                {firstLetter}
-            <div className="profile-image-actions">
-
-              <button
-                type="button"
-                className="primary-button"
-                onClick={handleUploadClick}
-              >
-                {profileImage ? "Change Photo" : "Upload Photo"}
-              </button>
-
-              {profileImage && (
                 <button
                   type="button"
-                  className="remove-photo-button"
-                  onClick={handleRemoveImage}
+                  className="profile-camera-button"
+                  onClick={handleUploadClick}
+                  title="Change profile picture"
                 >
-                  Remove
+                  +
                 </button>
-              )}
-
-            </div>
-
-          </section>
-
-
-          {/* SETTINGS CARD */}
-
-          <section className="settings-card">
-
-            <span>PERSONAL INFORMATION</span>
-
-            <h2>Account Details</h2>
-
-            <div className="settings-row">
-              <div>
-                <small>Name</small>
-                <strong>User Name</strong>
               </div>
 
-              <h2>
-                {profile.username || "User"}
-              </h2>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+                onChange={handleImageUpload}
+                style={{ display: "none" }}
+              />
+
+              <h2>{profile.username || "User"}</h2>
 
               <p>Traveler</p>
 
-              {!editing ? (
+              <div className="profile-image-actions">
                 <button
+                  type="button"
                   className="primary-button"
-                  onClick={handleEdit}
+                  onClick={handleUploadClick}
                 >
-                  Edit Profile
+                  {profileImage ? "Change Photo" : "Upload Photo"}
                 </button>
-              ) : (
-            <div>
 
+                {profileImage && (
                   <button
-                    className="primary-button"
-                    onClick={handleSave}
-                    disabled={saving}
+                    type="button"
+                    className="remove-photo-button"
+                    onClick={handleRemoveImage}
                   >
-                    {saving
-                      ? "Saving..."
-                      : "Save Changes"}
+                    Remove
                   </button>
-
-                  <button
-                    className="primary-button"
-                    onClick={handleCancel}
-                    disabled={saving}
-                    style={{ marginLeft: "10px" }}
-                  >
-                    Cancel
-                  </button>
-
-                </div>
-              )}
-
+                )}
+              </div>
             </section>
 
-            {/* Account Details */}
-            <section className="settings-card">
+            {/* ==========================================
+                SETTINGS CARD
+            ========================================== */}
 
+            <section className="settings-card">
               <span>PERSONAL INFORMATION</span>
 
               <h2>Account Details</h2>
 
-              {/* Username */}
+              {/* NAME */}
               <div className="settings-row">
                 <div>
                   <small>Name</small>
 
                   <strong>
-                    {profile.username ||
-                      "Not available"}
+                    {profile.username || "Not available"}
                   </strong>
                 </div>
               </div>
 
-              {/* Email */}
+              {/* EMAIL */}
               <div className="settings-row">
                 <div>
                   <small>Email</small>
@@ -352,17 +324,17 @@ function ProfileSettings() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
+                      placeholder="Enter your email"
                     />
                   ) : (
                     <strong>
-                      {profile.email ||
-                        "Not available"}
+                      {profile.email || "Not available"}
                     </strong>
                   )}
                 </div>
               </div>
 
-              {/* Phone */}
+              {/* PHONE */}
               <div className="settings-row">
                 <div>
                   <small>Phone</small>
@@ -373,17 +345,17 @@ function ProfileSettings() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
+                      placeholder="Enter your phone number"
                     />
                   ) : (
                     <strong>
-                      {profile.phone ||
-                        "Not available"}
+                      {profile.phone || "Not available"}
                     </strong>
                   )}
                 </div>
               </div>
 
-              {/* Frontend-only for now */}
+              {/* TRAVEL STYLE */}
               <div className="settings-row">
                 <div>
                   <small>Travel Style</small>
@@ -394,11 +366,10 @@ function ProfileSettings() {
                 </div>
               </div>
 
+              {/* PREFERRED DESTINATION */}
               <div className="settings-row">
                 <div>
-                  <small>
-                    Preferred Destination
-                  </small>
+                  <small>Preferred Destination</small>
 
                   <strong>
                     Mountain destinations
@@ -406,13 +377,43 @@ function ProfileSettings() {
                 </div>
               </div>
 
-            </section>
+              {/* ACTION BUTTONS */}
+              <div className="settings-actions">
+                {!editing ? (
+                  <button
+                    type="button"
+                    className="primary-button"
+                    onClick={handleEdit}
+                  >
+                    Edit Profile
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={handleSave}
+                      disabled={saving}
+                    >
+                      {saving ? "Saving..." : "Save Changes"}
+                    </button>
 
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={handleCancel}
+                      disabled={saving}
+                      style={{ marginLeft: "10px" }}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+              </div>
+            </section>
           </div>
         )}
-
       </main>
-
     </div>
   );
 }
