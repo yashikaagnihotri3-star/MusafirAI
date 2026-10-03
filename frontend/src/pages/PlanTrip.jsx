@@ -299,6 +299,7 @@ function PlanTrip() {
                         interests,
                         transport_preference:
                             "not specified",
+                        preferred_places: preferredPlaces,
                     }),
                 }
             );

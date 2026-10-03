@@ -209,6 +209,18 @@ class BudgetEstimateRequestSerializer(serializers.Serializer):
         required=False,
         default="not specified",
     )
+    
+    preferred_places = serializers.ListField(
+        child=serializers.CharField(
+            min_length=1,
+            max_length=150,
+            trim_whitespace=True,
+        ),
+        required=False,
+        default=list,
+        max_length=30,
+        allow_empty=True,
+    )
 
     def validate_destination(self, value):
         if not any(character.isalpha() for character in value):
