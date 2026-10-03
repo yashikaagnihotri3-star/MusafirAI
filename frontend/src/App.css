@@ -62,40 +62,31 @@ input {
 
 /* LOGO */
 
+/* LOGO */
+
 .navbar-logo {
   display: flex;
   align-items: center;
-
   gap: 6px;
+}
 
-  color: #154a73;
-
-  font-size: 30px;
-
-  font-weight: 800;
+.musafir-logo {
+  width: 155px;
+  height: auto;
+  display: block;
 }
 
 .logo-symbol {
   width: 40px;
   height: 40px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   background: #e9f7f6;
-
   color: #078b86;
-
   border-radius: 6px;
-
   font-size: 18px;
 }
-
-.logo-ai {
-  color: #0a9189;
-}
-
 
 /* NAVIGATION */
 
