@@ -72,7 +72,9 @@ class BudgetService:
             f"Travel pace: {request_data['travel_pace']}\n"
             f"Interests: {request_data.get('interests', [])}\n"
             f"Transport preference: "
-            f"{request_data.get('transport_preference', 'not specified')}\n\n"
+            f"{request_data.get('transport_preference', 'not specified')}\n"
+            f"Preferred places: "
+            f"{request_data.get('preferred_places', []) or 'None'}\n\n"
             "Return exactly these JSON fields:\n"
             "destination, currency, breakdown, estimated_total, "
             "minimum_budget, maximum_budget, assumptions.\n"
@@ -167,13 +169,43 @@ class BudgetService:
         }
 
     def estimate(self, request_data: dict[str, Any]) -> dict[str, Any]:
+        """Generate a validated budget estimate with one repair attempt."""
+        system_prompt = self._system_prompt()
+        user_prompt = self._user_prompt(request_data)
+
         response = self.ai_orchestrator.generate_json(
-            system_prompt=self._system_prompt(),
-            user_prompt=self._user_prompt(request_data),
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
             max_tokens=1200,
         )
 
-        return self.validate_response(
-            response,
-            request_data["destination"],
-        )
+        try:
+            return self.validate_response(
+                response,
+                request_data["destination"],
+            )
+        except BudgetResponseValidationError:
+            repair_prompt = (
+                "The previous budget JSON failed validation. "
+                "Return corrected JSON only. Keep the same destination, "
+                "traveller count, duration, travel style, interests, "
+                "transport preference, and preferred places. "
+                "Keep the six breakdown categories exactly as requested. "
+                "The six breakdown values must be non-negative whole INR "
+                "numbers. Recalculate estimated_total as the exact sum "
+                "of the six breakdown values. Set minimum_budget to "
+                "90% of estimated_total rounded to the nearest whole INR, "
+                "and maximum_budget to 110% of estimated_total rounded "
+                "to the nearest whole INR."
+            )
+
+            repaired_response = self.ai_orchestrator.generate_json(
+                system_prompt=system_prompt,
+                user_prompt=f"{user_prompt}\n\n{repair_prompt}",
+                max_tokens=1200,
+            )
+
+            return self.validate_response(
+                repaired_response,
+                request_data["destination"],
+            )

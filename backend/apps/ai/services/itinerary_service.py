@@ -53,13 +53,25 @@ class ItineraryService:
             except ItineraryResponseValidationError:
                 repair_prompt = (
                     "The previous itinerary JSON failed validation. "
-                    "Return the same itinerary as corrected JSON only. "
-                    "Do not change the destination, number of days, or requested "
-                    "preferred places. Recalculate every estimated_day_cost as "
-                    "the exact sum of its places' estimated_cost values, and "
-                    "recalculate total_estimated_cost as the exact sum of all "
-                    "estimated_day_cost values. Keep all costs as non-negative "
-                    "whole INR values and keep total_estimated_cost within budget."
+                    "Return corrected JSON only. Do not include Markdown, explanations, "
+                    "reasoning, or code fences. "
+                    "Keep the same destination and exactly the same number of days. "
+                    "The JSON field 'day' MUST be a JSON integer, never a string. "
+                    "Use exactly 1, 2, 3, ... for the day numbers. "
+                    "The fields 'duration_minutes', 'estimated_cost', "
+                    "'estimated_day_cost', and 'total_estimated_cost' MUST all be JSON "
+                    "integers, not strings. "
+                    "Each day MUST contain at least one place. "
+                    "Each place MUST contain name, time, duration_minutes, "
+                    "estimated_cost, and reason. "
+                    "Each estimated_day_cost MUST equal the exact sum of the "
+                    "estimated_cost values for that day. "
+                    "total_estimated_cost MUST equal the exact sum of all "
+                    "estimated_day_cost values. "
+                    "total_estimated_cost MUST NOT exceed the supplied budget. "
+                    "Keep all requested preferred places in the itinerary. "
+                    "Do not change the destination, days, budget, or preferred places. "
+                    "Return one complete valid itinerary JSON object."
                 )
 
                 repaired_response = self.ai_orchestrator.generate_json(
@@ -258,16 +270,18 @@ and must not exceed the supplied budget. Do not invent booking confirmations, op
             validated_days.append(validated_day)
             total_day_cost += validated_day["estimated_day_cost"]
 
-        if total_cost != total_day_cost:
+        calculated_total_cost = total_day_cost
+
+        if calculated_total_cost > preferences["budget"]:
             raise ItineraryResponseValidationError()
 
         return {
             "destination": preferences["destination"],
             "days": preferences["days"],
-            "total_estimated_cost": total_cost,
+            "total_estimated_cost": calculated_total_cost,
             "itinerary": validated_days,
-        }
-
+       }
+ 
     @classmethod
     def _validate_day(
         cls,
