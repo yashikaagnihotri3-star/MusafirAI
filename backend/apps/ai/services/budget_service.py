@@ -171,7 +171,6 @@ class BudgetService:
             system_prompt=self._system_prompt(),
             user_prompt=self._user_prompt(request_data),
             max_tokens=1200,
-            temperature=0.1,
         )
 
         return self.validate_response(

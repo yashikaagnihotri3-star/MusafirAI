@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
@@ -6,6 +5,7 @@ import mountainBg from "../assets/mountain-bg.png";
 
 function Signup() {
   const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -84,6 +84,7 @@ function Signup() {
       navigate("/login");
     } catch (error) {
       console.error("Signup error:", error);
+
       setError(
         "Unable to connect to the server. Please make sure Django is running."
       );
@@ -117,6 +118,7 @@ function Signup() {
         </div>
 
         <form onSubmit={handleSignup}>
+          {/* Username */}
           <div className="input-group">
             <label>Full Name</label>
 
@@ -130,6 +132,7 @@ function Signup() {
             />
           </div>
 
+          {/* Email */}
           <div className="input-group">
             <label>Email Address</label>
 
@@ -143,6 +146,7 @@ function Signup() {
             />
           </div>
 
+          {/* Phone */}
           <div className="input-group">
             <label>Phone Number</label>
 
@@ -156,56 +160,73 @@ function Signup() {
             />
           </div>
 
+          {/* Password */}
           <div className="input-group">
-  <label>Password</label>
+            <label>Password</label>
 
-  <div className="password-input-wrapper">
-    <input
-      type={showPassword ? "text" : "password"}
-      name="password"
-      placeholder="Enter your password"
-      required
-    />
+            <div className="password-input-wrapper">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
 
-    <button
-      type="button"
-      className="password-eye"
-      onClick={() => setShowPassword(!showPassword)}
-      aria-label={showPassword ? "Hide password" : "Show password"}
-    >
-      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-    </button>
-  </div>
-</div>
+              <button
+                type="button"
+                className="password-eye"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={
+                  showPassword ? "Hide password" : "Show password"
+                }
+              >
+                {showPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+            </div>
+          </div>
 
+          {/* Confirm Password */}
           <div className="input-group">
-  <label>Confirm Password</label>
+            <label>Confirm Password</label>
 
-  <div className="password-input-wrapper">
-    <input
-      type={showConfirmPassword ? "text" : "password"}
-      name="confirmPassword"
-      placeholder="Confirm your password"
-      required
-    />
+            <div className="password-input-wrapper">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                placeholder="Confirm your password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
 
-    <button
-      type="button"
-      className="password-eye"
-      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-      aria-label={
-        showConfirmPassword ? "Hide password" : "Show password"
-      }
-    >
-      {showConfirmPassword ? (
-        <EyeOff size={20} />
-      ) : (
-        <Eye size={20} />
-      )}
-    </button>
-  </div>
-</div>
+              <button
+                type="button"
+                className="password-eye"
+                onClick={() =>
+                  setShowConfirmPassword(!showConfirmPassword)
+                }
+                aria-label={
+                  showConfirmPassword
+                    ? "Hide password"
+                    : "Show password"
+                }
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+            </div>
+          </div>
 
+          {/* Error */}
           {error && (
             <p
               style={{
@@ -218,6 +239,7 @@ function Signup() {
             </p>
           )}
 
+          {/* Submit */}
           <button
             type="submit"
             className="auth-button"
@@ -242,3 +264,4 @@ function Signup() {
 }
 
 export default Signup;
+

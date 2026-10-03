@@ -109,8 +109,8 @@ function WomenSafe() {
       await apiRequest("/api/safety/sos/", {
         method: "POST",
         body: JSON.stringify({
-          latitude: position.latitude,
-          longitude: position.longitude,
+          latitude: Number(position.latitude.toFixed(8)),
+          longitude: Number(position.longitude.toFixed(8)),
         }),
       });
       await refreshSafetyData();

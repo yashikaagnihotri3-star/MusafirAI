@@ -40,13 +40,13 @@ class SOSEvent(models.Model):
     )
 
     latitude = models.DecimalField(
-        max_digits=9,
-        decimal_places=6
+        max_digits=18,
+        decimal_places=8
     )
 
     longitude = models.DecimalField(
-        max_digits=9,
-        decimal_places=6
+        max_digits=18,
+        decimal_places=8
     )
 
     status = models.CharField(

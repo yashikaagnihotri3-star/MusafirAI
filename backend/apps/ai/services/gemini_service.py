@@ -61,8 +61,10 @@ class GeminiService:
         config = types.GenerateContentConfig(
             system_instruction=system_prompt,
             max_output_tokens=max_tokens,
-            temperature=temperature,
             response_mime_type="application/json" if json_mode else None,
+            thinking_config=types.ThinkingConfig(
+                thinking_level="low"
+            ),
         )
 
         max_attempts = 3
