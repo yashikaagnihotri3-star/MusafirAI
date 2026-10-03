@@ -12,11 +12,19 @@ export async function apiRequest(endpoint, options = {}) {
         ...(options.headers || {}),
     };
 
+<<<<<<< HEAD
     if (!isLoginRequest && !isRefreshRequest && accessToken) {
         headers.Authorization = `Bearer ${accessToken}`;
     }
 
     let response = await fetch(`${API_URL}${endpoint}`, {
+=======
+    if (!isLoginRequest && token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+>>>>>>> origin/anubhuti
         ...options,
         headers,
     });
@@ -78,6 +86,16 @@ export async function apiRequest(endpoint, options = {}) {
     }
 
     if (!response.ok) {
+        if (response.status === 401 && !isLoginRequest) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            localStorage.removeItem("user_id");
+
+            window.location.href = "/login";
+
+            throw new Error("Session expired. Please login again.");
+        }
+
         throw new Error(
             data.error ||
             data.detail ||

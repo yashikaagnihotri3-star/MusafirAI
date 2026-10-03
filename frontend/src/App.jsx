@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+
 import Dashboard from "./pages/Dashboard";
 import PlanTrip from "./pages/PlanTrip";
 import MyTrips from "./pages/MyTrips";
@@ -10,31 +11,78 @@ import SmartMap from "./pages/SmartMap";
 import WomenSafe from "./pages/WomenSafe";
 import HeritageGuide from "./pages/HeritageGuide";
 import AIAssistant from "./pages/AIAssistant";
-import ProfileSettings from "./pages/ProfileSettings";
+import Settings from "./pages/ProfileSettings";
+
+import ProtectedRoute from "./components/ProtectedRoutes";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* Main */}
-        <Route path="/" element={<LandingPage />} />
+        {/* PUBLIC ROUTES */}
 
-        {/* Authentication */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route
+          path="/"
+          element={<LandingPage />}
+        />
 
-        {/* Dashboard */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
-        {/* Dashboard Pages */}
-        <Route path="/plan-trip" element={<PlanTrip />} />
-        <Route path="/my-trips" element={<MyTrips />} />
-        <Route path="/smart-map" element={<SmartMap />} />
-        <Route path="/womensafe" element={<WomenSafe />} />
-        <Route path="/heritage" element={<HeritageGuide />} />
-        <Route path="/ai-assistant" element={<AIAssistant />} />
-        <Route path="/settings" element={<ProfileSettings />} />
+        <Route
+          path="/signup"
+          element={<Signup />}
+        />
+
+
+        {/* PROTECTED ROUTES */}
+
+        <Route element={<ProtectedRoute />}>
+
+          <Route
+            path="/Dashboard"
+            element={<Dashboard />}
+          />
+
+          <Route
+            path="/plan-trip"
+            element={<PlanTrip />}
+          />
+
+          <Route
+            path="/my-trips"
+            element={<MyTrips />}
+          />
+
+          <Route
+            path="/smart-map"
+            element={<SmartMap />}
+          />
+
+          <Route
+            path="/womensafe"
+            element={<WomenSafe />}
+          />
+
+          <Route
+            path="/heritage"
+            element={<HeritageGuide />}
+          />
+
+          <Route
+            path="/ai-assistant"
+            element={<AIAssistant />}
+          />
+
+          <Route
+            path="/settings"
+            element={<Settings />}
+          />
+
+        </Route>
 
       </Routes>
     </BrowserRouter>
@@ -42,4 +90,3 @@ function App() {
 }
 
 export default App;
-
