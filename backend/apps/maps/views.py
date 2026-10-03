@@ -1,7 +1,4 @@
-from django.shortcuts import render
 import requests
-
-# Create your views here.
 from math import radians, sin, cos, sqrt, atan2
 
 from rest_framework import status
@@ -9,12 +6,51 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import DistanceRequestSerializer, SafetyPointsRequestSerializer
+from .serializers import (
+    DistanceRequestSerializer,
+    SafetyPointsRequestSerializer,
+)
 
-def get_nearby_safety_points(latitude, longitude, radius_km, categories):
+
+def calculate_haversine_distance(
+    latitude1,
+    longitude1,
+    latitude2,
+    longitude2,
+):
+    """Calculate straight-line distance between two coordinates."""
+
+    lat1 = radians(float(latitude1))
+    lon1 = radians(float(longitude1))
+    lat2 = radians(float(latitude2))
+    lon2 = radians(float(longitude2))
+
+    earth_radius_km = 6371.0
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = (
+        sin(dlat / 2) ** 2
+        + cos(lat1)
+        * cos(lat2)
+        * sin(dlon / 2) ** 2
+    )
+
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    return earth_radius_km * c
+
+
+def get_nearby_safety_points(
+    latitude,
+    longitude,
+    radius_km,
+    categories,
+):
     """
-    Fetch nearby police stations and hospitals from OpenStreetMap
-    using the Overpass API.
+    Fetch nearby police stations and hospitals
+    from OpenStreetMap using Overpass API.
     """
 
     category_mapping = {
@@ -59,11 +95,14 @@ def get_nearby_safety_points(latitude, longitude, radius_km, categories):
 
     return response.json().get("elements", [])
 
+
 class DistanceAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = DistanceRequestSerializer(data=request.data)
+        serializer = DistanceRequestSerializer(
+            data=request.data
+        )
 
         if not serializer.is_valid():
             return Response(
@@ -77,41 +116,33 @@ class DistanceAPIView(APIView):
         origin = serializer.validated_data["origin"]
         destination = serializer.validated_data["destination"]
 
-        lat1 = radians(origin["latitude"])
-        lon1 = radians(origin["longitude"])
-        lat2 = radians(destination["latitude"])
-        lon2 = radians(destination["longitude"])
-
-        earth_radius_km = 6371.0
-
-        dlat = lat2 - lat1
-        dlon = lon2 - lon1
-
-        a = (
-            sin(dlat / 2) ** 2
-            + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+        distance_km = calculate_haversine_distance(
+            origin["latitude"],
+            origin["longitude"],
+            destination["latitude"],
+            destination["longitude"],
         )
-
-        c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-        distance_km = earth_radius_km * c
-        distance_meters = distance_km * 1000
 
         return Response(
             {
                 "origin": origin,
                 "destination": destination,
                 "distance_km": round(distance_km, 2),
-                "distance_meters": round(distance_meters),
+                "distance_meters": round(
+                    distance_km * 1000
+                ),
             },
             status=status.HTTP_200_OK,
         )
+
 
 class RoutePreviewAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = DistanceRequestSerializer(data=request.data)
+        serializer = DistanceRequestSerializer(
+            data=request.data
+        )
 
         if not serializer.is_valid():
             return Response(
@@ -125,37 +156,106 @@ class RoutePreviewAPIView(APIView):
         origin = serializer.validated_data["origin"]
         destination = serializer.validated_data["destination"]
 
-        lat1 = radians(origin["latitude"])
-        lon1 = radians(origin["longitude"])
-        lat2 = radians(destination["latitude"])
-        lon2 = radians(destination["longitude"])
+        origin_lat = float(origin["latitude"])
+        origin_lon = float(origin["longitude"])
 
-        earth_radius_km = 6371.0
+        destination_lat = float(destination["latitude"])
+        destination_lon = float(destination["longitude"])
 
-        dlat = lat2 - lat1
-        dlon = lon2 - lon1
-
-        a = (
-            sin(dlat / 2) ** 2
-            + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+        # OSRM expects longitude,latitude
+        osrm_url = (
+            "https://router.project-osrm.org/route/v1/driving/"
+            f"{origin_lon},{origin_lat};"
+            f"{destination_lon},{destination_lat}"
         )
 
-        c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        try:
+            response = requests.get(
+                osrm_url,
+                params={
+                    "overview": "full",
+                    "geometries": "geojson",
+                    "steps": "false",
+                },
+                headers={
+                    "User-Agent": "MusafirAI/1.0"
+                },
+                timeout=20,
+            )
 
-        distance_km = earth_radius_km * c
-        distance_meters = distance_km * 1000
+            response.raise_for_status()
+
+            route_data = response.json()
+
+        except requests.RequestException as exc:
+            return Response(
+                {
+                    "detail": "Unable to calculate route.",
+                    "error": str(exc),
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        if route_data.get("code") != "Ok":
+            return Response(
+                {
+                    "detail": "No route could be found.",
+                    "route": None,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        routes = route_data.get("routes", [])
+
+        if not routes:
+            return Response(
+                {
+                    "detail": "No route could be found.",
+                    "route": None,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        route = routes[0]
+
+        geometry = route.get("geometry", {})
+        coordinates = geometry.get("coordinates", [])
+
+        # OSRM returns [longitude, latitude].
+        # Frontend Google Maps needs {lat, lng}.
+        path = [
+            {
+                "lat": coordinate[1],
+                "lng": coordinate[0],
+            }
+            for coordinate in coordinates
+        ]
+
+        distance_meters = route.get("distance", 0)
+        duration_seconds = route.get("duration", 0)
 
         return Response(
             {
                 "origin": origin,
                 "destination": destination,
                 "distance": {
-                    "km": round(distance_km, 2),
+                    "km": round(
+                        distance_meters / 1000,
+                        2,
+                    ),
                     "meters": round(distance_meters),
                 },
+                "duration": {
+                    "seconds": round(duration_seconds),
+                    "minutes": round(
+                        duration_seconds / 60
+                    ),
+                },
+                "path": path,
             },
             status=status.HTTP_200_OK,
         )
+
 
 class SafetyPointsAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -187,24 +287,25 @@ class SafetyPointsAPIView(APIView):
                 categories,
             )
 
-        except requests.RequestException as e:
-            print("OVERPASS ERROR:", e)
+        except requests.RequestException as exc:
+            print("OVERPASS ERROR:", exc)
+
             return Response(
                 {
-                    "detail": "Unable to fetch safety points from OpenStreetMap.",
+                    "detail": (
+                        "Unable to fetch safety points "
+                        "from OpenStreetMap."
+                    ),
                     "safety_points": [],
                 },
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
-
 
         safety_points = []
 
         for element in elements:
             tags = element.get("tags", {})
 
-            # Nodes have lat/lon directly.
-            # Ways/relations have coordinates inside "center".
             if "lat" in element and "lon" in element:
                 point_latitude = element["lat"]
                 point_longitude = element["lon"]
@@ -216,21 +317,21 @@ class SafetyPointsAPIView(APIView):
             else:
                 continue
 
-            if point_latitude is None or point_longitude is None:
+            if (
+                point_latitude is None
+                or point_longitude is None
+            ):
                 continue
 
             amenity = tags.get("amenity")
 
             if amenity == "police":
                 category = "POLICE"
-
             elif amenity == "hospital":
                 category = "HOSPITAL"
-
             else:
                 continue
 
-            # Calculate distance using Haversine formula.
             distance_km = calculate_haversine_distance(
                 latitude,
                 longitude,
@@ -247,11 +348,13 @@ class SafetyPointsAPIView(APIView):
                     "category": category,
                     "latitude": point_latitude,
                     "longitude": point_longitude,
-                    "distance_km": round(distance_km, 2),
+                    "distance_km": round(
+                        distance_km,
+                        2,
+                    ),
                 }
             )
 
-        # Nearest safety locations first.
         safety_points.sort(
             key=lambda point: point["distance_km"]
         )
