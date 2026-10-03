@@ -1,6 +1,16 @@
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 
 function Sidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_id");
+
+    navigate("/", { replace: true });
+  };
+
   return (
     <aside className="app-sidebar">
 
@@ -8,14 +18,21 @@ function Sidebar() {
         <div className="sidebar-brand-icon">✦</div>
 
         <div>
-          <strong>Musafir<span>AI</span></strong>
-          <small>Travel Companion</small>
+          <strong>
+            Musafir<span>AI</span>
+          </strong>
+
+          <small>
+            Travel Companion
+          </small>
         </div>
       </Link>
 
       <div className="sidebar-menu">
 
-        <p className="sidebar-heading">MAIN MENU</p>
+        <p className="sidebar-heading">
+          MAIN MENU
+        </p>
 
         <NavLink
           to="/dashboard"
@@ -55,7 +72,6 @@ function Sidebar() {
         >
           <span>⌖</span>
           Smart Map
-          
         </NavLink>
 
         <NavLink
@@ -68,7 +84,6 @@ function Sidebar() {
           WomenSafe
         </NavLink>
 
-        
         <NavLink
           to="/heritage"
           className={({ isActive }) =>
@@ -103,20 +118,33 @@ function Sidebar() {
           Settings
         </NavLink>
 
-        <Link to="/" className="sidebar-item logout-item">
+        <button
+          type="button"
+          className="sidebar-item logout-item"
+          onClick={handleLogout}
+        >
           <span>↪</span>
           Logout
-        </Link>
+        </button>
 
       </div>
 
       <div className="sidebar-bottom-card">
-        <div className="sidebar-bottom-icon">✦</div>
+
+        <div className="sidebar-bottom-icon">
+          ✦
+        </div>
 
         <div>
-          <strong>MusafirAI</strong>
-          <p>Travel smarter.</p>
+          <strong>
+            MusafirAI
+          </strong>
+
+          <p>
+            Travel smarter.
+          </p>
         </div>
+
       </div>
 
     </aside>

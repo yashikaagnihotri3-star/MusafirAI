@@ -1,11 +1,12 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import mountainBg from "../assets/mountain-bg.png";
+import { apiRequest } from "../api/api";
 
 function Signup() {
   const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -21,10 +22,12 @@ function Signup() {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
 
     setError("");
   };
@@ -34,7 +37,6 @@ function Signup() {
 
     setError("");
 
-    // Check passwords
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -43,50 +45,29 @@ function Signup() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/accounts/signup/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username: formData.username,
-            email: formData.email,
-            phone: formData.phone,
-            password: formData.password,
-          }),
-        }
-      );
+      await apiRequest("/api/accounts/signup/", {
+        method: "POST",
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+        }),
+      });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Handle Django validation errors
-        if (data.username) {
-          setError(data.username[0]);
-        } else if (data.email) {
-          setError(data.email[0]);
-        } else if (data.phone) {
-          setError(data.phone[0]);
-        } else if (data.password) {
-          setError(data.password[0]);
-        } else {
-          setError("Signup failed. Please check your details.");
-        }
-
-        return;
-      }
-
-      // Signup successful
       alert("Account created successfully!");
 
       navigate("/login");
-    } catch (error) {
-      console.error("Signup error:", error);
-      setError(
-        "Unable to connect to the server. Please make sure Django is running."
-      );
+    } catch (err) {
+      console.error("Signup error:", err);
+
+      if (err.message) {
+        setError(err.message);
+      } else {
+        setError(
+          "Unable to create account. Please check your details."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -108,17 +89,32 @@ function Signup() {
       </Link>
 
       <div className="auth-card signup-card">
+
         <div className="auth-header">
-          <div className="auth-icon">✦</div>
 
-          <h1>Create Your Account</h1>
+          <div className="auth-icon">
+            ✦
+          </div>
 
-          <p>Join MusafirAI and start exploring</p>
+          <h1>
+            Create Your Account
+          </h1>
+
+          <p>
+            Join MusafirAI and start exploring
+          </p>
+
         </div>
 
         <form onSubmit={handleSignup}>
+
+          {/* USERNAME */}
+
           <div className="input-group">
-            <label>Full Name</label>
+
+            <label>
+              Full Name
+            </label>
 
             <input
               type="text"
@@ -128,10 +124,16 @@ function Signup() {
               onChange={handleChange}
               required
             />
+
           </div>
 
+          {/* EMAIL */}
+
           <div className="input-group">
-            <label>Email Address</label>
+
+            <label>
+              Email Address
+            </label>
 
             <input
               type="email"
@@ -141,10 +143,16 @@ function Signup() {
               onChange={handleChange}
               required
             />
+
           </div>
 
+          {/* PHONE */}
+
           <div className="input-group">
-            <label>Phone Number</label>
+
+            <label>
+              Phone Number
+            </label>
 
             <input
               type="tel"
@@ -154,57 +162,98 @@ function Signup() {
               onChange={handleChange}
               required
             />
+
           </div>
 
-          <div className="input-group">
-  <label>Password</label>
-
-  <div className="password-input-wrapper">
-    <input
-      type={showPassword ? "text" : "password"}
-      name="password"
-      placeholder="Enter your password"
-      required
-    />
-
-    <button
-      type="button"
-      className="password-eye"
-      onClick={() => setShowPassword(!showPassword)}
-      aria-label={showPassword ? "Hide password" : "Show password"}
-    >
-      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-    </button>
-  </div>
-</div>
+          {/* PASSWORD */}
 
           <div className="input-group">
-  <label>Confirm Password</label>
 
-  <div className="password-input-wrapper">
-    <input
-      type={showConfirmPassword ? "text" : "password"}
-      name="confirmPassword"
-      placeholder="Confirm your password"
-      required
-    />
+            <label>
+              Password
+            </label>
 
-    <button
-      type="button"
-      className="password-eye"
-      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-      aria-label={
-        showConfirmPassword ? "Hide password" : "Show password"
-      }
-    >
-      {showConfirmPassword ? (
-        <EyeOff size={20} />
-      ) : (
-        <Eye size={20} />
-      )}
-    </button>
-  </div>
-</div>
+            <div className="password-input-wrapper">
+
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+
+              <button
+                type="button"
+                className="password-eye"
+                onClick={() =>
+                  setShowPassword((prev) => !prev)
+                }
+                aria-label={
+                  showPassword
+                    ? "Hide password"
+                    : "Show password"
+                }
+              >
+                {showPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+
+            </div>
+
+          </div>
+
+          {/* CONFIRM PASSWORD */}
+
+          <div className="input-group">
+
+            <label>
+              Confirm Password
+            </label>
+
+            <div className="password-input-wrapper">
+
+              <input
+                type={
+                  showConfirmPassword
+                    ? "text"
+                    : "password"
+                }
+                name="confirmPassword"
+                placeholder="Confirm your password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
+
+              <button
+                type="button"
+                className="password-eye"
+                onClick={() =>
+                  setShowConfirmPassword((prev) => !prev)
+                }
+                aria-label={
+                  showConfirmPassword
+                    ? "Hide password"
+                    : "Show password"
+                }
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+
+            </div>
+
+          </div>
+
+          {/* ERROR */}
 
           {error && (
             <p
@@ -218,24 +267,34 @@ function Signup() {
             </p>
           )}
 
+          {/* SUBMIT */}
+
           <button
             type="submit"
             className="auth-button"
             disabled={loading}
           >
-            {loading ? "Creating Account..." : "Create Account"}
+            {loading
+              ? "Creating Account..."
+              : "Create Account"}
           </button>
+
         </form>
 
         <div className="divider">
-          <span>OR</span>
+          <span>
+            OR
+          </span>
         </div>
 
         <p className="switch-auth">
           Already have an account?
 
-          <Link to="/login">Login</Link>
+          <Link to="/login">
+            Login
+          </Link>
         </p>
+
       </div>
     </div>
   );

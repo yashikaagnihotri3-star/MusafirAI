@@ -5,22 +5,38 @@ export async function apiRequest(endpoint, options = {}) {
 
     const isLoginRequest = endpoint === "/api/accounts/login/";
 
+    const headers = {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+    };
+
+    if (!isLoginRequest && token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_URL}${endpoint}`, {
         ...options,
-        headers: {
-            "Content-Type": "application/json",
-            ...(!isLoginRequest && token
-                ? { Authorization: `Bearer ${token}` }
-                : {}),
-            ...(options.headers || {}),
-        },
+        headers,
     });
 
     const data = await response.json();
 
     if (!response.ok) {
+        if (response.status === 401 && !isLoginRequest) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            localStorage.removeItem("user_id");
+
+            window.location.href = "/login";
+
+            throw new Error("Session expired. Please login again.");
+        }
+
         throw new Error(
-            data.error || data.detail || data.message || "Something went wrong"
+            data.error ||
+            data.detail ||
+            data.message ||
+            "Something went wrong"
         );
     }
 
