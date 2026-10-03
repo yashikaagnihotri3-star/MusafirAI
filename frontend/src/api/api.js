@@ -12,19 +12,11 @@ export async function apiRequest(endpoint, options = {}) {
         ...(options.headers || {}),
     };
 
-<<<<<<< HEAD
     if (!isLoginRequest && !isRefreshRequest && accessToken) {
         headers.Authorization = `Bearer ${accessToken}`;
     }
 
     let response = await fetch(`${API_URL}${endpoint}`, {
-=======
-    if (!isLoginRequest && token) {
-        headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${API_URL}${endpoint}`, {
->>>>>>> origin/anubhuti
         ...options,
         headers,
     });
